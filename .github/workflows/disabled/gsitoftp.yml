@@ -1,4 +1,4 @@
-name: GSI..
+name: Easy GSI..
 
 on:
 #  release:
@@ -14,11 +14,13 @@ on:
     types: [started]
     
 env:
-  ROM_URL: https://download.meizu.com/Firmware/Flyme/16xs/8.20.8.24/cn_daily/20200824093724/007eda68/update.zip
-  ROM_NAME: Flyme
-  ZIP_NAME: MEIZU16XS
+  ROM_URL: https://bigota.d.miui.com/20.9.10/miui_PYXIS_20.9.10_caeacff944_10.0.zip
+  ROM_NAME: MIUI
+  ZIP_NAME: CC9-20.9.10
   TZ: Asia/Kolkata
-  MIR: wet
+  username : 
+  password : 
+  uploadto : 
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -40,10 +42,9 @@ jobs:
          run: |
             sudo -E apt-get -qq update
             sudo -E apt-get -qq install git openjdk-8-jdk wget
-
        
        - name: Clone ErfanGSI Source Code
-         run: git clone --recurse-submodules https://github.com/erfanoabdi/ErfanGSIs.git
+         run: git clone --recurse-submodules https://github.com/erfanoabdi/ErfanGSIs
        
        - name: Setting up ErfanGSI requirements
          run: |
@@ -52,19 +53,22 @@ jobs:
               sudo bash setup.sh
        
        - name: Download Stock Rom & Generate GSI
-         run: sudo ./ErfanGSIs/url2GSI.sh $ROM_URL $ROM_NAME --ab
+         run: sudo ./ErfanGSIs/url2GSI.sh $ROM_URL $ROM_NAME
        
-       - name: upload tool downloading
+       - name: Zip Aonly and upload 
          run: |
-               mkdir final
-               sudo chmod -R 777 ErfanGSIs/output
-               curl -sL https://git.io/file-transfer | sh
+              mkdir final
+              sudo chmod -R 777 ErfanGSIs/output
+              cd ErfanGSIs/output
+              zip -r $ZIP_NAME-GSI-Aonly.7z *-Aonly-*.img
+              curl -T $ZIP_NAME-GSI-Aonly.7z ftp://$username:$password@$uploadto/          
        - name: Zip AB and upload 
          run: |
-              zip -r ErfanGSIs/output/$ZIP_NAME-GSI-AB.7z ErfanGSIs/output/*-AB-*.img
-              ./transfer $MIR ErfanGSIs/output/$ZIP_NAME-GSI-AB.7z      
+              cd ErfanGSIs/output
+              zip -r $ZIP_NAME-GSI-AB.7z *-AB-*.img
+              curl -T $ZIP_NAME-GSI-AB.7z ftp://$username:$password@$uploadto/
        - name: Print build info
          run: |
-              cat ErfanGSIs/output/*-AB-*.txt
+              cat ErfanGSIs/output/*-Aonly-*.txt
          
             

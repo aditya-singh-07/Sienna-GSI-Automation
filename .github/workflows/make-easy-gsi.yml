@@ -1,7 +1,6 @@
-#yamllint disable
-name: GSI With product Partition..
+name: Easy GSI..
 
-off:
+on:
 #  release:
 #    types: [published]
 #  push:
@@ -15,11 +14,11 @@ off:
     types: [started]
     
 env:
-  ROM_URL: https://oxygenos.oneplus.net/OnePlus8ProOxygen_15.O.19_OTA_019_all_2005301411_63c531a1a94a4fc1.zip
-  ROM_NAME: OxygenOS
-  ZIP_NAME: Oneplus8PRO
+  ROM_URL: https://bigota.d.miui.com/20.9.3/miui_LAVENDER_20.9.3_c55b414260_10.0.zip
+  ROM_NAME: MIUI
+  ZIP_NAME: MIUIPLUS
   TZ: Asia/Kolkata
-  MIR: flk
+  MIR: wet
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -34,7 +33,6 @@ jobs:
            sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d
            sudo -E apt-get -y purge azure-cli ghc* zulu* hhvm llvm* firefox google* dotnet* powershell openjdk* mysql* php*
            sudo -E apt-get update
-           sudo -E apt-get install wget
            sudo -E apt-get -y autoremove --purge
            sudo -E apt-get clean 
            
@@ -42,10 +40,9 @@ jobs:
          run: |
             sudo -E apt-get -qq update
             sudo -E apt-get -qq install git openjdk-8-jdk wget
-
        
-       - name: Clone ErfanGSI Source Code and dynamic makedynamic script
-         run: git clone --recurse-submodules https://github.com/erfanoabdi/ErfanGSIs.git
+       - name: Clone ErfanGSI Source Code
+         run: git clone --recurse-submodules https://github.com/erfanoabdi/ErfanGSIs
        
        - name: Setting up ErfanGSI requirements
          run: |
@@ -54,30 +51,23 @@ jobs:
               sudo bash setup.sh
        
        - name: Download Stock Rom & Generate GSI
-         run: |
-              wget -Oq firmware.zip $ROM_URL
-              wget -Oq makedynamic.sh https://gist.githubusercontent.com/shivvvvvv/6ff35518eca03b86d2ec92a33c8407ba/raw/34f133159c319f4f25785eef2a65ac4fea757d91/makedynamic.sh
-              chmod +x makedynamic.sh
-              sudo ./makedynamic.sh $ROM_NAME firmware.zip
-              sudo rm -rf firmware.zip
-              chmod +x make.sh       
+         run: sudo ./ErfanGSIs/url2GSI.sh $ROM_URL $ROM_NAME
+       
        - name: Zip Aonly and upload 
          run: |
-              sudo ./make.sh system/ $ROM_NAME Aonly output/
               mkdir final
               sudo chmod -R 777 ErfanGSIs/output
-              zip -r ErfanGSIs/output/$ZIP_NAME-GSI-Aonly.7z ErfanGSIs/output/*-Aonly-*.img
+              cd ErfanGSIs/output
+              zip -r $ZIP_NAME-GSI-Aonly.7z *-Aonly-*.img
               curl -sL https://git.io/file-transfer | sh
-              ./transfer $MIR ErfanGSIs/output/$ZIP_NAME-GSI-Aonly.7z
-              sudo rm -rf output/*          
+              ./transfer $MIR $ZIP_NAME-GSI-Aonly.7z          
        - name: Zip AB and upload 
          run: |
-              sudo ./make.sh system/ $ROM_NAME AB output/
-              zip -r ErfanGSIs/output/$ZIP_NAME-GSI-AB.7z ErfanGSIs/output/*-AB-*.img
-              ./transfer $MIR ErfanGSIs/output/$ZIP_NAME-GSI-AB.7z      
+              cd ErfanGSIs/output
+              zip -r $ZIP_NAME-GSI-AB.7z *-AB-*.img
+              ./transfer $MIR $ZIP_NAME-GSI-AB.7z      
        - name: Print build info
          run: |
-              cat ErfanGSIs/output/*-AB-*.txt
+              cat ErfanGSIs/output/*-Aonly-*.txt
          
             
-#yamllint enable
